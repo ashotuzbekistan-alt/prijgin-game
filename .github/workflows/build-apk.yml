@@ -1,35 +1,36 @@
-name: Build Android APK
+[app]
+title = Прыжкин Приключение
+package.name = prygkin
+package.domain = org.raulbros
 
-# Собирается автоматически при каждом push в main, а также вручную из
-# вкладки Actions на GitHub (кнопка "Run workflow").
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+source.dir = .
+source.include_exts = py,png,jpg,jpeg,ttf,wav,ogg
 
-jobs:
-  build:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Забираем код репозитория
-        uses: actions/checkout@v4
+version = 1.0
 
-      - name: Собираем APK через Buildozer
-        uses: digreatbrian/buildozer-action@v2
-        with:
-          python-version: "3.11"
-          buildozer-cmd: buildozer -v android debug
+# pygame — единственная зависимость игры; buildozer сам соберёт под Android
+requirements = python3,pygame
 
-      - name: Публикуем готовый APK как артефакт сборки
-        uses: actions/upload-artifact@v4
-        with:
-          name: prygkin-apk
-          path: ./bin/*.apk
+orientation = landscape
+fullscreen = 1
 
-      - name: Прикрепляем APK к Release (если это тег версии)
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ./bin/*.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+icon.filename = %(source.dir)s/assets/icon.png
+
+android.permissions = INTERNET
+
+# Минимальная и целевая версия Android API
+android.minapi = 24
+android.api = 33
+android.ndk_api = 24
+# Фиксируем конкретную версию build-tools (без этого buildozer тянет самую
+# новую — 37 — для которой в CI-окружении не подтверждена лицензия SDK)
+android.build_tools = 33.0.2
+android.accept_sdk_license = True
+
+android.archs = arm64-v8a, armeabi-v7a
+
+log_level = 2
+
+[buildozer]
+log_level = 2
+warn_on_root = 1
