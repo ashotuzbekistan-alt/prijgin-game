@@ -1,7 +1,5 @@
 name: Build Android APK
 
-# Собирается автоматически при каждом push в main, а также вручную из
-# вкладки Actions на GitHub (кнопка "Run workflow").
 on:
   push:
     branches: [ main ]
@@ -9,28 +7,27 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Забираем код репозитория
         uses: actions/checkout@v4
 
       - name: Собираем APK через Buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        id: buildozer
+        uses: digreatbrian/buildozer-action@v2
         with:
-          workdir: .
-          buildozer_version: stable
+          python-version: "3.11"
+          buildozer-cmd: buildozer -v android debug
 
       - name: Публикуем готовый APK как артефакт сборки
         uses: actions/upload-artifact@v4
         with:
           name: prygkin-apk
-          path: ${{ steps.buildozer.outputs.filename }}
+          path: ./bin/*.apk
 
       - name: Прикрепляем APK к Release (если это тег версии)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ steps.buildozer.outputs.filename }}
+          files: ./bin/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
